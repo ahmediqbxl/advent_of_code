@@ -82,6 +82,6 @@ def summarize_calibration_values(file):
     return total
 
 if __name__ == "__main__":
-    text_file = 'input.txt'
+    text_file = 'sample_input.txt'
     total = summarize_calibration_values(text_file)
     print("The total is: ", total) # answer is 281
