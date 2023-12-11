@@ -2,13 +2,6 @@
 '''Determine which games would have been possible if the bag had been loaded with only 
 12 red cubes, 13 green cubes, and 14 blue cubes. What is the sum of the IDs of those games?'''
 
-loaded_cubes = {
-    'red':'12',
-    'green':'13',
-    'blue':'14'
-}
-
-
 # Step 1: Read in the input file as a list
 def read_text_file(file):
     data_list = []
@@ -37,37 +30,45 @@ def split_on_semicolons(data):
     return data
 
 # Step 2: Structure the data into a dictionary
-def structure_games(data):
-    # Initialize variables
-    game_dict = {}
-    current_game = None
-    current_set = None
-    current_color = None
+def structure_data(data):
+    split_data = split_on_colons(data)
+    split_data_new = split_on_semicolons(split_data)
 
-    for line in data: 
-        # Split the string into tokens
-        tokens = line.split()
+    data_dict = dict(split_data_new)
 
-        for token in tokens:
-            if token.isdigit():
-                if current_game is None:
-                    current_game = int(token)
-                    game_dict[current_game] = {}
-                elif current_set is None:
-                    current_set = f'set {token}'
-                    game_dict[current_game][current_set] = {}
-            elif token.endswith(';'):
-                current_color = token.rstrip(';')
-            elif token.isalpha():
-                if current_color is not None:
-                    game_dict[current_game][current_set][current_color] = int(token)
-        
-    return game_dict
+    result = {key: [dict(entry.strip().split(' ', 1) 
+                        for entry in value.split(',')) for value in data_dict[key]] for key in data_dict}
+    
+    return result
 
-data = read_text_file('sample_input.txt')
-# data_dict = structure_games(data)
+# Step 3: Figure out which games are possible
+def analyze_games(data_dict):
+    count = 0 
+    loaded_cubes = {
+        'red':'12',
+        'green':'13',
+        'blue':'14'
+    }
 
-split_data = split_on_colons(data)
-split_data_new = split_on_semicolons(split_data)
+    for key, value in data_dict.items():
+        impossible = False
+        for set in value: # value is a list that contains the set as a dictionary
+            for number, color in set.items(): # 7, red
+                constraint_value = loaded_cubes[color]
+                if int(constraint_value) < int(number):
+                    impossible = True # we can't add this into the count
+        if impossible:
+            print(f"Game {key} is not possible")
+        else:
+            print(f"Game {key} is possible")
+            count = count + int(key)
+    return count
 
-print(dict(split_data_new))
+
+data = read_text_file('input.txt')
+
+result = structure_data(data)
+
+count = analyze_games(result)
+
+print("Sum of ID's that are possible is", count) # 2447
