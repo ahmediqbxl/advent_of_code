@@ -1,6 +1,5 @@
-'''Solution to Advent of Code day 2
-Determine which games would have been possible if the bag had been loaded with only 
-12 red cubes, 13 green cubes, and 14 blue cubes. What is the sum of the IDs of those games?'''
+'''Solution to Advent of Code day 2 part 2
+For each game, find the minimum set of cubes that must have been present. What is the sum of the power of these sets?'''
 
 # Step 1: Read in the input file as a list
 def read_text_file(file):
@@ -36,39 +35,41 @@ def structure_data(data):
 
     data_dict = dict(split_data_new)
 
-    result = {key: [dict(entry.strip().split(' ', 1) 
-                        for entry in value.split(',')) for value in data_dict[key]] for key in data_dict}
-    
+    result = {key: [dict(entry.strip().split(' ', 1) for entry in pair.split(',')) for section in data_dict[key] for pair in section.split(';')] for key in data_dict}
+
     return result
 
 # Step 3: Figure out which games are possible
 def analyze_games(data_dict):
     count = 0 
-    loaded_cubes = {
-        'red':'12',
-        'green':'13',
-        'blue':'14'
-    }
 
     for key, value in data_dict.items():
-        impossible = False
+        loaded_cubes = {
+            'red':0,
+            'green':0,
+            'blue':0
+        }
         for set in value: # value is a list that contains the set as a dictionary
             for number, color in set.items(): # 7, red
-                constraint_value = loaded_cubes[color]
-                if int(constraint_value) < int(number):
-                    impossible = True # we can't add this into the count
-        if impossible:
-            print(f"Game {key} is not possible")
-        else:
-            print(f"Game {key} is possible")
-            count = count + int(key)
+                loaded_value = loaded_cubes[color] # starts at 0
+                if loaded_value < int(number): # finding minimum value and assign it to color
+                    loaded_cubes[color] = int(number)
+
+        # at this point, the set has the minimum values of colors
+        power = loaded_cubes['blue']*loaded_cubes['green']*loaded_cubes['red']
+        print("power is ", loaded_cubes)
+        count = count + power
+
     return count
 
-
-data = read_text_file('input.txt')
+data = read_text_file('sample_input.txt')
 
 result = structure_data(data)
 
 count = analyze_games(result)
 
-print("Sum of ID's that are possible is", count) # 2447
+print(count)
+
+
+# there's a bug that isn't reading in one color from the last set. Need to 
+# review the structure_data function. 
