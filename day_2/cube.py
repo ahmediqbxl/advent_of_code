@@ -15,11 +15,26 @@ def read_text_file(file):
 
     with open(file, "r") as f:
         for line in f:
+            line = line.replace('Game', '')
             data_list.append(line.strip())
 
-    data_list = [item for item in data_list if item != 'Game']
-
     return data_list
+
+def split_on_colons(data):
+    split_data = []
+    for line in data:
+        new_line = line.split(":")
+        split_data.append(new_line)
+
+    return split_data
+
+def split_on_semicolons(data):
+    for line in data: # data is now a list of lists with the first item being the game value
+        values = line[1]
+        split_set = values.split(";")
+        line[1] = split_set
+    
+    return data
 
 # Step 2: Structure the data into a dictionary
 def structure_games(data):
@@ -29,22 +44,30 @@ def structure_games(data):
     current_set = None
     current_color = None
 
-    for item in data:
-        if item.isdigit():
-            if current_game is None:
-                current_game = int(item)
-                game_dict[current_game] = {}
-            elif current_set is None:
-                current_set = f'set {item}'
-                game_dict[current_game][current_set] = {}
-        elif item.endswith(';'):
-            current_color = item.rstrip(';')
-        elif item.isalpha():
-            game_dict[current_game][current_set][current_color] = item
+    for line in data: 
+        # Split the string into tokens
+        tokens = line.split()
 
+        for token in tokens:
+            if token.isdigit():
+                if current_game is None:
+                    current_game = int(token)
+                    game_dict[current_game] = {}
+                elif current_set is None:
+                    current_set = f'set {token}'
+                    game_dict[current_game][current_set] = {}
+            elif token.endswith(';'):
+                current_color = token.rstrip(';')
+            elif token.isalpha():
+                if current_color is not None:
+                    game_dict[current_game][current_set][current_color] = int(token)
+        
     return game_dict
 
 data = read_text_file('sample_input.txt')
-data_dict = structure_games(data)
+# data_dict = structure_games(data)
 
-print(data)
+split_data = split_on_colons(data)
+split_data_new = split_on_semicolons(split_data)
+
+print(dict(split_data_new))
